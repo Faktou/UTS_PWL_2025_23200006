@@ -4,13 +4,74 @@ import { useEffect, useState } from 'react';
 
 export default function PreorderPage() {
 
+    const[preorders,setPreorders] = useState([]);
   const [formVisible, setFormVisible] = useState(false);
-  const [ order_date, SetOrderDate ] = useState('');
-  const [ order_by, SetOrderBy ] = useState('');
+  const [ order_date, setOrderDate ] = useState('');
+  const [ order_by, setOrderBy ] = useState('');
   const [ selected_package, setSelectedPackage ]= useState('');
   const [ qty, setQty ] = useState('');
   const [ status, setStatus ] = useState('');
   const [ msg, setMsg ] = useState('');
+  const [editId, setEditId] = useState(null);
+
+  const fetchPreorders = async () => {
+    const res = await fetch('api/preorder');
+    const data = await res.json();
+    setPreorders(data);
+  };
+
+  useEffect(() => {
+    fetchPreorders();
+}, []);
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    const method = editId ? 'PUT' : 'POST';
+    const url = editId ? `/api/preorder/${editId}` : '/api/preorder';
+    const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_date, order_by, selected_package, qty: Number(qty), status }),
+    });
+
+    if (res.ok) {
+        setMsg('Berhasil disimpan!');
+        setOrderDate('');
+        setOrderBy('');
+        setSelectedPackage('');
+        setQty('');
+        setStatus('');
+        setEditId(null);
+        setFormVisible(false);
+        fetchPreorders();
+    } else {
+        setMsg('Gagal menyimpan data');
+    }
+};
+
+const handleEdit = (item) => {
+    setOrderDate(item.order_date);
+    setOrderBy(item.order_by);
+    setSelectedPackage(item.selected_package);
+    setQty(item.qty);
+    setStatus(item.status === "Lunas" ? "Lunas" : "Belum Lunas");
+    setEditId(item.id);
+    setFormVisible(true);
+};
+
+
+
+const handleDelete = async (id) => {
+    if (!confirm('Yakin hapus data ini?')) return;
+
+    await fetch(`/api/preorder/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+    });
+
+    fetchPreorders();
+};
 
   return (
     <div className={styles.container}>
@@ -24,24 +85,24 @@ export default function PreorderPage() {
         {formVisible && (
             <div className={styles.formWrapper}>
                 <h3>Input Data Baru</h3>
-                <form>
+                <form onSubmit={handleSubmit}>
                 <div className={styles.formGroup}>
                     <span>Tanggal Pesanan</span>
                     <input
-                    type="date"
-                    value={order_date}
-                    onChange={(e) => setOrderDate(e.target.value)}
-                    required
+                        type="date"
+                        value={order_date}
+                        onChange={(e) => setOrderDate(e.target.value)}
+                        required
                     />
                 </div>
                 <div className={styles.formGroup}>
                     <span>Nama Pemesan</span>
                     <input
-                    type="text"
-                    value={order_by}
-                    onChange={(e) => setOrderBy(e.target.value)}
-                    placeholder="Masukkan Nama Pemesan"
-                    required
+                        type="text"
+                        value={order_by}
+                        onChange={(e) => setOrderBy(e.target.value)}
+                        placeholder="Masukkan Nama Pemesan"
+                        required
                     />
                 </div>
                 <div className={styles.formGroup}>
@@ -62,7 +123,7 @@ export default function PreorderPage() {
                 <div className={styles.formGroup}>
                     <span>Jumlah</span>
                     <input
-                    type="text"
+                    type="number"
                     value={qty}
                     onChange={(e) => setQty(e.target.value)}
                     placeholder="Input Jumlah"
@@ -111,6 +172,28 @@ export default function PreorderPage() {
                     <th>Aksi</th>
                 </tr>
                 </thead>
+                <tbody style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                {preorders.map((item, index) => (
+                        <tr key={item.id}>
+                            <td>{index + 1}</td>
+                            <td>{item.order_date}</td>
+                            <td>{item.order_by}</td>
+                            <td>{item.selected_package}</td>
+                            <td>{item.qty}</td>
+                            <td>{item.status}</td>
+                            <td>
+                                <button onClick={() => handleEdit(item)}>Edit</button>
+                                <button onClick={() => handleDelete(item.id)} style={{ marginLeft: '10px'}}>Hapus</button>
+                            </td>
+                            
+                        </tr>
+                    ))}
+                    {preorders.length === 0 && (
+                        <tr>
+                            <td colSpan="7">Belum ada data</td>
+                        </tr>
+                    )}
+                </tbody>
             </table>    
         </div>
     </div>
