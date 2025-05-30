@@ -7,3 +7,11 @@ CREATE TABLE "preorder" (
     "qty" INTEGER NOT NULL,
     "is_paid" BOOLEAN NOT NULL
 );
+
+CREATE TABLE "pckg" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "kode" TEXT NOT NULL,
+    "nama" TEXT NOT NULL,
+    "deskripsi" TEXT NOT NULL,
+    "status" TEXT NOT NULL
+);
