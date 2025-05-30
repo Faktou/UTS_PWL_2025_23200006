@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 
 export async function PUT(request, { params }) {
     const { id } = params;
-    const { kode, nama, deskripsi, status } = await request.json();
+    const { kode, nama, deskripsi } = await request.json();
 
     if (!kode || !nama || !deskripsi || !status) {
         return new Response(JSON.stringify({ error: 'Field kosong' }), { status: 400 });
@@ -11,15 +11,14 @@ export async function PUT(request, { params }) {
     try {
         const pckg = await prisma.pckg.update({
             where: { id: Number(id) },
-            data: { kode, nama, deskripsi, status },
+            data: { kode, nama, deskripsi },
         });
 
         const formattedPckg = {
             id: pckg.id,
             kode: pckg.kode,
             nama: pckg.nama,
-            deskripsi: pckg.deskripsi,
-            status: pckg.status
+            deskripsi: pckg.deskripsi
         };
 
         return new Response(JSON.stringify(formattedPckg), { status: 200 });

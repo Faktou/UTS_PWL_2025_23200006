@@ -9,7 +9,6 @@ export default function PckgPage() {
     const [ kode, setKode ] = useState('');
     const [ nama, setNama ] = useState('');
     const [ deskripsi, setDeskripsi ]= useState('');
-    const [ status, setStatus ] = useState('');
     const [ msg, setMsg ] = useState('');
     const [editId, setEditId] = useState(null);
 
@@ -30,7 +29,7 @@ const handleSubmit = async (e) => {
     const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kode, nama, deskripsi, status }),
+        body: JSON.stringify({ kode, nama, deskripsi }),
     });
 
     if (res.ok) {
@@ -38,7 +37,6 @@ const handleSubmit = async (e) => {
         setKode('');
         setNama('');
         setDeskripsi('');
-        setStatus('');
         setEditId(null);
         setFormVisible(false);
         fetchPckgs();
@@ -51,7 +49,6 @@ const handleEdit = (item) => {
     setKode(item.kode);
     setNama(item.nama);
     setDeskripsi(item.deskripsi);
-    setStatus(item.status === "Lunas" ? "Lunas" : "Belum Lunas");
     setEditId(item.id);
     setFormVisible(true);
 };
@@ -114,27 +111,6 @@ const handleDelete = async (id) => {
                         required
                     />
                 </div>
-                <div className={styles.formGroup}>
-                    <span>Status</span>
-                    <label>
-                    <input
-                    type="radio"
-                    value="Lunas"
-                    checked={status === "Lunas"}
-                    onChange={(e) => setStatus(e.target.value)}
-                    />
-                    Lunas
-                </label>
-                <label>
-                    <input
-                    type="radio"
-                    value="Belum Lunas"
-                    checked={status === "Belum Lunas"}
-                    onChange={(e) => setStatus(e.target.value)}
-                    />
-                    Belum Lunas
-                </label>
-                </div>
                 <button type="submit" className={styles.submitButton}>
                     Simpan
                 </button>
@@ -151,7 +127,6 @@ const handleDelete = async (id) => {
                     <th>Kode</th>
                     <th>Nama</th>
                     <th>Deskripsi</th>
-                    <th>Status</th>
                     <th>Aksi</th>
                 </tr>
                 </thead>
@@ -162,7 +137,6 @@ const handleDelete = async (id) => {
                             <td>{item.kode}</td>
                             <td>{item.nama}</td>
                             <td>{item.deskripsi}</td>
-                            <td>{item.status}</td>
                             <td>
                                 <button onClick={() => handleEdit(item)}>Edit</button>
                                 <button onClick={() => handleDelete(item.id)} style={{ marginLeft: '10px'}}>Hapus</button>
