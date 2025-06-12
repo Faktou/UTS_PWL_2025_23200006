@@ -28,7 +28,7 @@ export default function PreorderPage() {
 
   useEffect(() => {
     fetchPreorders();
-    fetchPackages(); 
+    fetchPackages();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -41,7 +41,7 @@ export default function PreorderPage() {
       body: JSON.stringify({
         order_date,
         order_by,
-        selected_package,
+        selected_package: Number(selected_package), // pastikan number
         qty: Number(qty),
         status,
       }),
@@ -65,7 +65,7 @@ export default function PreorderPage() {
   const handleEdit = (item) => {
     setOrderDate(item.order_date);
     setOrderBy(item.order_by);
-    setSelectedPackage(item.selected_package);
+    setSelectedPackage(item.selected_package.toString());
     setQty(item.qty);
     setStatus(item.status === "Lunas" ? "Lunas" : "Belum Lunas");
     setEditId(item.id);
@@ -77,15 +77,13 @@ export default function PreorderPage() {
 
     await fetch(`/api/preorder/${id}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
     });
 
     fetchPreorders();
   };
 
   const getPackageName = (id) => {
-    const pkg = packages.find((p) => p.id === id);
+    const pkg = packages.find((p) => String(p.id) === String(id)); // konversi ke string
     return pkg ? pkg.nama : 'Tidak ditemukan';
   };
 
