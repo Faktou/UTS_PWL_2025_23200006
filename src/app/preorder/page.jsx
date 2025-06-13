@@ -6,18 +6,30 @@ export default function PreorderPage() {
   const [preorders, setPreorders] = useState([]);
   const [formVisible, setFormVisible] = useState(false);
   const [order_date, setOrderDate] = useState('');
-  const [order_by, setOrderBy] = useState('');
+  const [customerId, setCustomerId] = useState('');
   const [selected_package, setSelectedPackage] = useState('');
   const [qty, setQty] = useState('');
   const [status, setStatus] = useState('');
   const [msg, setMsg] = useState('');
   const [editId, setEditId] = useState(null);
   const [packages, setPackages] = useState([]);
+  const [customers, setCustomers] = useState([]);
 
   const fetchPreorders = async () => {
-    const res = await fetch('/api/preorder');
-    const data = await res.json();
-    setPreorders(data);
+    try {
+      const res = await fetch('/api/preorder');
+      const data = await res.json();
+
+      if (Array.isArray(data)) {
+        setPreorders(data);
+      } else {
+        console.error("Data preorder bukan array:", data);
+        setPreorders([]);
+      }
+    } catch (error) {
+      console.error("Gagal fetch preorder:", error);
+      setPreorders([]);
+    }
   };
 
   const fetchPackages = async () => {
@@ -26,22 +38,30 @@ export default function PreorderPage() {
     setPackages(data);
   };
 
+  const fetchCustomers = async () => {
+    const res = await fetch('/api/customers');
+    const data = await res.json();
+    setCustomers(data);
+  };
+
   useEffect(() => {
     fetchPreorders();
     fetchPackages();
+    fetchCustomers();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const method = editId ? 'PUT' : 'POST';
     const url = editId ? `/api/preorder/${editId}` : '/api/preorder';
+
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         order_date,
-        order_by,
-        selected_package: Number(selected_package), // pastikan number
+        customerId: Number(customerId),
+        selected_package: Number(selected_package),
         qty: Number(qty),
         status,
       }),
@@ -50,7 +70,7 @@ export default function PreorderPage() {
     if (res.ok) {
       setMsg('Berhasil disimpan!');
       setOrderDate('');
-      setOrderBy('');
+      setCustomerId('');
       setSelectedPackage('');
       setQty('');
       setStatus('');
@@ -64,10 +84,10 @@ export default function PreorderPage() {
 
   const handleEdit = (item) => {
     setOrderDate(item.order_date);
-    setOrderBy(item.order_by);
-    setSelectedPackage(item.selected_package.toString());
-    setQty(item.qty);
-    setStatus(item.status === "Lunas" ? "Lunas" : "Belum Lunas");
+    setCustomerId(String(item.customerId));
+    setSelectedPackage(String(item.selected_package));
+    setQty(String(item.qty));
+    setStatus(item.status);
     setEditId(item.id);
     setFormVisible(true);
   };
@@ -83,8 +103,13 @@ export default function PreorderPage() {
   };
 
   const getPackageName = (id) => {
-    const pkg = packages.find((p) => String(p.id) === String(id)); // konversi ke string
+    const pkg = packages.find((p) => String(p.id) === String(id));
     return pkg ? pkg.nama : 'Tidak ditemukan';
+  };
+
+  const getCustomerName = (id) => {
+    const cust = customers.find((c) => String(c.id) === String(id));
+    return cust ? cust.nama : 'Tidak ditemukan';
   };
 
   return (
@@ -112,13 +137,18 @@ export default function PreorderPage() {
             </div>
             <div className={styles.formGroup}>
               <span>Nama Pemesan</span>
-              <input
-                type="text"
-                value={order_by}
-                onChange={(e) => setOrderBy(e.target.value)}
-                placeholder="Masukkan Nama Pemesan"
+              <select
+                value={customerId}
+                onChange={(e) => setCustomerId(e.target.value)}
                 required
-              />
+              >
+                <option value="">Pilih Customer</option>
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nama}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className={styles.formGroup}>
               <span>Paket</span>
@@ -190,7 +220,7 @@ export default function PreorderPage() {
               <tr key={item.id}>
                 <td>{index + 1}</td>
                 <td>{item.order_date}</td>
-                <td>{item.order_by}</td>
+                <td>{getCustomerName(item.customerId)}</td>
                 <td>{getPackageName(item.selected_package)}</td>
                 <td>{item.qty}</td>
                 <td>{item.status}</td>

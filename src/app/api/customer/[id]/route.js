@@ -1,29 +1,19 @@
+// app/api/customers/route.js
 import prisma from "@/lib/prisma";
 
-export async function PUT(request, { params }) {
-    const { id } = params;
-    const { nama, nomor, email } = await request.json();
-
-    if (!nama || !nomor || !email) {
-        return new Response(JSON.stringify({ error: 'Field kosong' }), { status: 400 });
-    }
-
-    const updatedCustomer = await prisma.customer.update({
-        where: { id: Number(id) },
-        data: { nama, nomor, email },
-    });
-
-    return new Response(JSON.stringify(updatedCustomer), { status: 200 });
+export async function GET() {
+  const data = await prisma.customer.findMany({ orderBy: { id: 'asc' } });
+  return new Response(JSON.stringify(data), { status: 200 });
 }
 
-export async function DELETE(request, { params }) {
-    const { id } = params;
+export async function POST(request) {
+  const { nama, nomor, email } = await request.json();
 
-    if (!id) return new Response(JSON.stringify({ error: "ID tidak ditemukan" }), { status: 400 });
+  if (!nama || !nomor || !email) {
+    return new Response(JSON.stringify({ error: 'Semua field wajib diisi' }), { status: 400 });
+  }
 
-    await prisma.customer.delete({
-        where: { id: Number(id) },
-    });
+  const newCustomer = await prisma.customer.create({ data: { nama, nomor, email } });
 
-    return new Response(JSON.stringify({ message: "Berhasil dihapus" }), { status: 200 });
+  return new Response(JSON.stringify(newCustomer), { status: 201 });
 }

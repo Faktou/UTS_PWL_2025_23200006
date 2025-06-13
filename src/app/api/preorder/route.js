@@ -1,3 +1,6 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
 export async function GET() {
   try {
     const data = await prisma.preorder.findMany({
@@ -15,15 +18,10 @@ export async function GET() {
       customerId: item.customerId,
     }));
 
-    return new Response(JSON.stringify(formattedData), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return NextResponse.json(formattedData);
   } catch (error) {
     console.error('GET /api/preorder error:', error);
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
